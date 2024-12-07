@@ -1,50 +1,62 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
-	"github.com/quantum73/go_package_example/formatter"
-	"github.com/quantum73/go_package_example/math"
+	"github.com/joho/godotenv"
+	"github.com/quantum73/go_package_example/env"
 	pg "github.com/quantum73/go_package_example/postgres_client"
+	"log"
 )
 
-func main() {
-	num := math.Double(2)
-	output := print.Format(num)
-	fmt.Println(output)
+const envPath string = ".env"
 
-	db, err := pg.ConnectToPostgres(pg.HOST, pg.PORT, pg.USER, pg.PASSWORD, pg.DBNAME, pg.SSLMODE)
+func main() {
+	err := godotenv.Load(envPath)
+	if err != nil {
+		log.Printf("Error during loading .env file: %v\n", err)
+		return
+	}
+
+	pgHost, err := env.GetRequiredEnvValue("DB_HOST")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbPort, err := env.GetRequiredEnvValue("DB_PORT")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbPortAsInt, err := env.ParseInt(dbPort)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbUser, err := env.GetRequiredEnvValue("DB_USER")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbPassword, err := env.GetRequiredEnvValue("DB_PASS")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbName, err := env.GetRequiredEnvValue("DB_NAME")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbSSLMode, err := env.GetRequiredEnvValue("DB_SSLMODE")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	db, err := pg.ConnectToPostgres(pgHost, dbPortAsInt, dbUser, dbPassword, dbName, dbSSLMode)
 	defer db.Close()
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("Error connecting to postgres: %v\n", err)
+		return
 	}
 
-	rows, err := db.Query("SELECT * FROM account_emailaddress LIMIT 1")
-	defer rows.Close()
+	err = db.Ping()
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("Bad postgres ping: %v\n", err)
+		return
 	}
 
-	for rows.Next() {
-		var id, userId int
-		var email string
-		var verified, primary bool
-		if err := rows.Scan(&id, &email, &verified, &primary, &userId); err != nil {
-			log.Fatal(err)
-		}
-
-		obj := pg.AccountEmailAddressObject{
-			Id:       id,
-			UserId:   userId,
-			Email:    email,
-			Verified: verified,
-			Primary:  primary,
-		}
-		fmt.Println(obj)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalln(err)
-	}
+	log.Println("Successfully connected to postgres")
 }

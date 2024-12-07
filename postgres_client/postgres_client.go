@@ -6,15 +6,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	HOST     = "localhost"
-	PORT     = 5432
-	USER     = "postgres"
-	PASSWORD = "postgres"
-	DBNAME   = "muser"
-	SSLMODE  = "disable"
-)
-
 type AccountEmailAddressObject struct {
 	Id, UserId        int
 	Email             string
