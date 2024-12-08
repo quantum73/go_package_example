@@ -1,62 +1,45 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/quantum73/go_package_example/env"
-	pg "github.com/quantum73/go_package_example/postgres_client"
+	"encoding/json"
+	"fmt"
+	jpc "github.com/quantum73/go_package_example/json_placeholder_client"
 	"log"
+	"sync"
 )
 
-const envPath string = ".env"
+var todoBaseUrl = "https://jsonplaceholder.typicode.com/todos"
+var todosCount = 100
 
 func main() {
-	err := godotenv.Load(envPath)
+	jpClient := jpc.NewJSONPlaceholderClient(todosCount)
+	var wg sync.WaitGroup
+
+	wg.Add(todosCount)
+	for i := 0; i < todosCount; i++ {
+		go func(idx int) {
+			defer wg.Done()
+
+			detailTodoBaseUrl := fmt.Sprintf("%s/%d", todoBaseUrl, idx+1)
+			err := jpClient.AddFromUrl(idx, detailTodoBaseUrl)
+			if err != nil {
+				log.Printf("Error during request to `%s`: %s", detailTodoBaseUrl, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	fmt.Println("All todos has been received!")
+
+	resultExample, err := jpClient.GetResultById(0)
 	if err != nil {
-		log.Printf("Error during loading .env file: %v\n", err)
-		return
+		log.Fatalf("Error during get result by id: %s", err)
 	}
 
-	pgHost, err := env.GetRequiredEnvValue("DB_HOST")
+	todo := jpc.TodoResponse{}
+	err = json.Unmarshal([]byte(resultExample), &todo)
 	if err != nil {
-		log.Fatalln(err)
-	}
-	dbPort, err := env.GetRequiredEnvValue("DB_PORT")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	dbPortAsInt, err := env.ParseInt(dbPort)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	dbUser, err := env.GetRequiredEnvValue("DB_USER")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	dbPassword, err := env.GetRequiredEnvValue("DB_PASS")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	dbName, err := env.GetRequiredEnvValue("DB_NAME")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	dbSSLMode, err := env.GetRequiredEnvValue("DB_SSLMODE")
-	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error during JSON unmarshalling todo object: %s", err)
 	}
 
-	db, err := pg.ConnectToPostgres(pgHost, dbPortAsInt, dbUser, dbPassword, dbName, dbSSLMode)
-	defer db.Close()
-	if err != nil {
-		log.Printf("Error connecting to postgres: %v\n", err)
-		return
-	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Printf("Bad postgres ping: %v\n", err)
-		return
-	}
-
-	log.Println("Successfully connected to postgres")
+	fmt.Printf("Todo example:\n%s\n", todo)
 }

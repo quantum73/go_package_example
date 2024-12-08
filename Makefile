@@ -4,7 +4,11 @@ fmt:
 	go fmt ./...
 .PHONY:fmt
 
-vet: fmt
+lint: fmt
+	golangci-lint run ./...
+.PHONY:lint
+
+vet: lint
 	go vet ./...
 .PHONY:vet
 

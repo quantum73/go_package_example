@@ -14,7 +14,7 @@ func ParseInt(key string) (int, error) {
 	return value, nil
 }
 
-func GetRequiredEnvValue(key string) (string, error) {
+func GetRequiredValue(key string) (string, error) {
 	value := os.Getenv(key)
 	if value != "" {
 		return value, nil

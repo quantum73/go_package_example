@@ -22,7 +22,7 @@ func TestParseInt(t *testing.T) {
 	}
 }
 
-// TestGetRequiredEnvValue calls env.GetRequiredEnvValue with existed environment key.
+// TestGetRequiredEnvValue calls env.GetRequiredValue with existed environment key.
 func TestGetRequiredEnvValue(t *testing.T) {
 	// Set environment variable
 	envVariableName := "HOST"
@@ -32,14 +32,14 @@ func TestGetRequiredEnvValue(t *testing.T) {
 		t.Fatalf("error setting environment variable: %s", err)
 	}
 
-	t.Run("Test GetRequiredEnvValue with existed env variable", func(t *testing.T) {
-		targetEnvVariableValue, err := GetRequiredEnvValue(envVariableName)
+	t.Run("Test GetRequiredValue with existed env variable", func(t *testing.T) {
+		targetEnvVariableValue, err := GetRequiredValue(envVariableName)
 		if err != nil {
-			t.Fatalf("env.GetRequiredEnvValue(\"%s\") got error: %s", envVariableName, err)
+			t.Fatalf("env.GetRequiredValue(\"%s\") got error: %s", envVariableName, err)
 		}
 		if targetEnvVariableValue != envVariableValue {
 			t.Fatalf(
-				"env.GetRequiredEnvValue(\"%s\") = %s, expected - %s",
+				"env.GetRequiredValue(\"%s\") = %s, expected - %s",
 				envVariableName, targetEnvVariableValue, envVariableValue,
 			)
 		}
@@ -52,14 +52,14 @@ func TestGetRequiredEnvValue(t *testing.T) {
 	}
 }
 
-// TestGetRequiredEnvValueWithoutEnv calls env.GetRequiredEnvValue with not existed environment key.
+// TestGetRequiredEnvValueWithoutEnv calls env.GetRequiredValue with not existed environment key.
 func TestGetRequiredEnvValueWithoutEnv(t *testing.T) {
 	envVariableName := "HOST"
 	expectedErrorMessage := fmt.Sprintf("environment variable `%s` unset", envVariableName)
 
-	_, err := GetRequiredEnvValue(envVariableName)
+	_, err := GetRequiredValue(envVariableName)
 	if err == nil {
-		t.Fatalf("env.GetRequiredEnvValue(\"%s\") should return an error", envVariableName)
+		t.Fatalf("env.GetRequiredValue(\"%s\") should return an error", envVariableName)
 	}
 
 	if err.Error() != expectedErrorMessage {
