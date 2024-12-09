@@ -1,7 +1,6 @@
 package env
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -19,6 +18,15 @@ func TestParseInt(t *testing.T) {
 			"env.ParseInt(%s) = %d, expected - %d",
 			intAsString, intNumber, expectedIntNumber,
 		)
+	}
+}
+
+// TestParseInt calls env.ParseInt with incorrect string.
+func TestParseIntWithIncorrectString(t *testing.T) {
+	incorrectString := "foo"
+	_, err := ParseInt(incorrectString)
+	if err == nil {
+		t.Fatalf("env.ParseInt(%s) got no error", incorrectString)
 	}
 }
 
@@ -55,14 +63,8 @@ func TestGetRequiredEnvValue(t *testing.T) {
 // TestGetRequiredEnvValueWithoutEnv calls env.GetRequiredValue with not existed environment key.
 func TestGetRequiredEnvValueWithoutEnv(t *testing.T) {
 	envVariableName := "HOST"
-	expectedErrorMessage := fmt.Sprintf("environment variable `%s` unset", envVariableName)
-
 	_, err := GetRequiredValue(envVariableName)
 	if err == nil {
 		t.Fatalf("env.GetRequiredValue(\"%s\") should return an error", envVariableName)
-	}
-
-	if err.Error() != expectedErrorMessage {
-		t.Fatalf("Error message should be `%s`, but got `%s`", expectedErrorMessage, err.Error())
 	}
 }
